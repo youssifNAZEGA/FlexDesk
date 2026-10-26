@@ -1,0 +1,54 @@
+generator client {
+  provider = "postgresql"
+  output   = "./node_modules/.prisma/client/"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  firstName   String
+  email       String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings    Booking[]
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  name        String
+  capacity    Int
+  pricePerHour Float
+  equipments  String[] @default([])
+  imageUrl    String? // URL optionnelle pour l'image
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings    Booking[]
+}
+
+model Booking {
+  id          String   @id @default(uuid())
+
+  userId      String
+  roomId      String
+
+  startTime   DateTime
+  endTime     DateTime
+  accessCode  String?
+  status      String   @default("pending")
+  totalPrice  Float    @default(0)
+
+  // Relations
+  user   Profile @relation(fields: [userId], references: [id])
+  room   Room    @relation(fields: [roomId], references: [id])
+
+  @@ index([userId])
+  @@ index([roomId])
+  @@ index([startTime, endTime])
+  @@ index([status])
+}
